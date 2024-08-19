@@ -394,6 +394,9 @@ import {
     WhileStatement,
     WithStatement,
     YieldExpression,
+    createPrinter,
+    NewLineKind,
+    EmitHint
 } from "./_namespaces/ts";
 import * as performance from "./_namespaces/ts.performance";
 
@@ -4065,6 +4068,14 @@ namespace Parser {
         }
     }
 
+    function parseThrows() {
+        if (token() == SyntaxKind.ThrowsKeyword) {
+            nextToken();
+
+            return disallowConditionalTypesAnd(parseUnionTypeOrHigher);
+        }
+    }
+
     function shouldParseReturnType(returnToken: SyntaxKind.ColonToken | SyntaxKind.EqualsGreaterThanToken, isType: boolean): boolean {
         if (returnToken === SyntaxKind.EqualsGreaterThanToken) {
             parseExpected(returnToken);
@@ -7685,9 +7696,11 @@ namespace Parser {
         if (modifierFlags & ModifierFlags.Export) setAwaitContext(/*value*/ true);
         const parameters = parseParameters(isGenerator | isAsync);
         const type = parseReturnType(SyntaxKind.ColonToken, /*isType*/ false);
+        const throwsType = parseThrows();
         const body = parseFunctionBlockOrSemicolon(isGenerator | isAsync, Diagnostics.or_expected);
         setAwaitContext(savedAwaitContext);
-        const node = factory.createFunctionDeclaration(modifiers, asteriskToken, name, typeParameters, parameters, type, body);
+        const node = factory.createFunctionDeclaration(modifiers, asteriskToken, name, typeParameters, parameters, type, body, throwsType);
+
         return withJSDoc(finishNode(node, pos), hasJSDoc);
     }
 

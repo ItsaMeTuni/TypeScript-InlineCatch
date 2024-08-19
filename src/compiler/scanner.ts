@@ -189,6 +189,7 @@ export const textToKeywordObj: MapLike<KeywordSyntaxKind> = {
     symbol: SyntaxKind.SymbolKeyword,
     this: SyntaxKind.ThisKeyword,
     throw: SyntaxKind.ThrowKeyword,
+    throws: SyntaxKind.ThrowsKeyword,
     true: SyntaxKind.TrueKeyword,
     try: SyntaxKind.TryKeyword,
     type: SyntaxKind.TypeKeyword,
