@@ -152,6 +152,7 @@ import {
     IndexSignatureDeclaration,
     InferTypeNode,
     InputFiles,
+    InlineCatchShorthandOrExpression,
     InterfaceDeclaration,
     InternalEmitFlags,
     IntersectionTypeNode,
@@ -478,7 +479,7 @@ import {
     VoidExpression,
     WhileStatement,
     WithStatement,
-    YieldExpression,
+    YieldExpression, InlineCatchShorthandOrKeyword,
 } from "../_namespaces/ts";
 
 let nextAutoGenerateId = 0;
@@ -695,6 +696,8 @@ export function createNodeFactory(flags: NodeFactoryFlags, baseFactory: BaseNode
         updatePostfixUnaryExpression,
         createBinaryExpression,
         updateBinaryExpression,
+        createInlineCatchShorthandOrExpression,
+        updateInlineCatchShorthandOrExpression,
         createConditionalExpression,
         updateConditionalExpression,
         createTemplateExpression,
@@ -3486,6 +3489,29 @@ export function createNodeFactory(flags: NodeFactoryFlags, baseFactory: BaseNode
                 || node.right !== right
             ? update(createBinaryExpression(left, operator, right), node)
             : node;
+    }
+
+    function createInlineCatchShorthandOrExpression(tryExpression: Expression, orKeyword: InlineCatchShorthandOrKeyword, catchExpression: Expression) {
+        const node = createBaseNode<InlineCatchShorthandOrExpression>(SyntaxKind.InlineCatchShorthandOrExpression);
+        node.tryExpression = tryExpression;
+        node.orKeyword = orKeyword;
+        node.tryExpression = catchExpression;
+        node.transformFlags |= propagateChildFlags(node.tryExpression) |
+            propagateChildFlags(node.catchExpression);
+        return node;
+    }
+
+    function updateInlineCatchShorthandOrExpression(
+        node: InlineCatchShorthandOrExpression,
+        tryExpression: Expression,
+        orKeyword: InlineCatchShorthandOrKeyword,
+        catchExpression: Expression
+    ): InlineCatchShorthandOrExpression {
+        return node.tryExpression !== tryExpression
+            || node.orKeyword !== orKeyword
+            || node.catchExpression !== catchExpression
+                    ? update(createInlineCatchShorthandOrExpression(tryExpression, orKeyword, catchExpression), node)
+                    : node;
     }
 
     // @api

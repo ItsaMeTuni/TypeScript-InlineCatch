@@ -44,7 +44,7 @@ import {
     isImportAttributeName,
     isImportAttributes,
     isImportClause,
-    isImportSpecifier,
+    isImportSpecifier, isInlineCatchShorthandOrKeyword,
     isJsxAttributeLike,
     isJsxAttributeName,
     isJsxAttributes,
@@ -1170,6 +1170,15 @@ const visitEachChildTable: VisitEachChildTable = {
             Debug.checkDefined(nodeVisitor(node.left, visitor, isExpression)),
             tokenVisitor ? Debug.checkDefined(nodeVisitor(node.operatorToken, tokenVisitor, isBinaryOperatorToken)) : node.operatorToken,
             Debug.checkDefined(nodeVisitor(node.right, visitor, isExpression)),
+        );
+    },
+
+    [SyntaxKind.InlineCatchShorthandOrExpression]: function visitEachChildOfInlineCatchShorthandOrExpression(node, visitor, context, _nodesVisitor, nodeVisitor, tokenVisitor) {
+        return context.factory.updateInlineCatchShorthandOrExpression(
+            node,
+            Debug.checkDefined(nodeVisitor(node.tryExpression, visitor, isExpression)),
+            tokenVisitor ? Debug.checkDefined(nodeVisitor(node.orKeyword, tokenVisitor, isInlineCatchShorthandOrKeyword)) : node.orKeyword,
+            Debug.checkDefined(nodeVisitor(node.catchExpression, visitor, isExpression)),
         );
     },
 

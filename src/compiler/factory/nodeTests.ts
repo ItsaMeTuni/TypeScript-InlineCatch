@@ -78,7 +78,7 @@ import {
     ImportTypeNode,
     IndexedAccessTypeNode,
     IndexSignatureDeclaration,
-    InferTypeNode,
+    InferTypeNode, InlineCatchShorthandOrKeyword,
     InterfaceDeclaration,
     IntersectionTypeNode,
     JSDoc,
@@ -387,6 +387,8 @@ export function isImportKeyword(node: Node): node is ImportExpression {
 export function isCaseKeyword(node: Node): node is CaseKeyword {
     return node.kind === SyntaxKind.CaseKeyword;
 }
+
+export function isInlineCatchShorthandOrKeyword(node: Node): node is InlineCatchShorthandOrKeyword { return node.kind === SyntaxKind.InlineCatchShorthandOrKeyword; }
 
 // Names
 
