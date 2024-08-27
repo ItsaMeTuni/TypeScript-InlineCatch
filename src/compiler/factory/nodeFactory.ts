@@ -3495,7 +3495,7 @@ export function createNodeFactory(flags: NodeFactoryFlags, baseFactory: BaseNode
         const node = createBaseNode<InlineCatchShorthandOrExpression>(SyntaxKind.InlineCatchShorthandOrExpression);
         node.tryExpression = tryExpression;
         node.orKeyword = orKeyword;
-        node.tryExpression = catchExpression;
+        node.catchExpression = catchExpression;
         node.transformFlags |= propagateChildFlags(node.tryExpression) |
             propagateChildFlags(node.catchExpression);
         return node;
