@@ -3496,8 +3496,11 @@ export function createNodeFactory(flags: NodeFactoryFlags, baseFactory: BaseNode
         node.tryExpression = tryExpression;
         node.orKeyword = orKeyword;
         node.catchExpression = catchExpression;
-        node.transformFlags |= propagateChildFlags(node.tryExpression) |
-            propagateChildFlags(node.catchExpression);
+        node.transformFlags |=
+            propagateChildFlags(node.tryExpression) |
+            propagateChildFlags(node.catchExpression) |
+            TransformFlags.ContainsTypeScript;
+
         return node;
     }
 

@@ -65,13 +65,13 @@ import {
     hasSyntacticModifier,
     HeritageClause,
     Identifier,
-    idText,
+    idText, IfStatement,
     ImportClause,
     ImportDeclaration,
     ImportEqualsDeclaration,
     ImportsNotUsedAsValues,
     ImportSpecifier,
-    InitializedVariableDeclaration,
+    InitializedVariableDeclaration, InlineCatchShorthandOrExpression,
     insertStatementsAfterStandardPrologue,
     InternalEmitFlags,
     isAccessExpression,
@@ -837,6 +837,9 @@ export function transformTypeScript(context: TransformationContext) {
 
             case SyntaxKind.JsxOpeningElement:
                 return visitJsxJsxOpeningElement(node as JsxOpeningElement);
+
+            case SyntaxKind.InlineCatchShorthandOrExpression:
+                return visitInlineCatchShorthandOrExpression(node as InlineCatchShorthandOrExpression);
 
             default:
                 // node contains some other TypeScript syntax
@@ -1786,6 +1789,44 @@ export function transformTypeScript(context: TransformationContext) {
             Debug.checkDefined(visitNode(node.tagName, visitor, isJsxTagNameExpression)),
             /*typeArguments*/ undefined,
             Debug.checkDefined(visitNode(node.attributes, visitor, isJsxAttributes)),
+        );
+    }
+
+    function visitInlineCatchShorthandOrExpression(node: InlineCatchShorthandOrExpression) {
+        // const block = factory.createBlock(
+        //     [
+        //         factory.createTryStatement(
+        //             // tryBlock
+        //             factory.createBlock(),
+        //             // catchClause
+        //             factory.createBlock()
+        //         )
+        //     ],
+        //     true,
+        // );
+        //
+        // const arrowFunction = factory.createArrowFunction(
+        //     undefined,
+        //     undefined,
+        //     [],
+        //     undefined,
+        //     undefined,
+        //     block,
+        // )
+
+        // node.parent.child == node;
+        // node.parent.child = helloNode;
+        // if (expression) thenStatement else elseStatement
+        //
+
+        return setOriginalNode(
+            setTextRange(
+                factory.createStringLiteral(
+                    /*text*/'hello, world'
+                ),
+                node,
+            ),
+            node,
         );
     }
 

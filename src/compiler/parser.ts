@@ -1796,8 +1796,7 @@ namespace Parser {
         nextToken();
 
         const statements = parseList(ParsingContext.SourceElements, parseStatement);
-        console.log(statements[statements.length - 1])
-        fs.writeFileSync(`${process.cwd()}/out.json`, util.inspect(statements, { depth: null }));
+        fs.writeFileSync(`${process.cwd()}/before_transforms.text`, util.inspect(statements, { depth: null }));
         Debug.assert(token() === SyntaxKind.EndOfFileToken);
         const endHasJSDoc = hasPrecedingJSDocComment();
         const endOfFileToken = withJSDoc(parseTokenNode<EndOfFileToken>(), endHasJSDoc);
