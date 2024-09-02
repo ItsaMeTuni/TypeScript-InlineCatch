@@ -551,6 +551,7 @@ export function createNodeFactory(flags: NodeFactoryFlags, baseFactory: BaseNode
         createIdentifier,
         createTempVariable,
         createLoopVariable,
+        createInlineCatchShorthandOrCatchClauseVariable
         createUniqueName,
         getGeneratedNameForNode,
         createPrivateIdentifier,
@@ -1388,6 +1389,12 @@ export function createNodeFactory(flags: NodeFactoryFlags, baseFactory: BaseNode
     function createLoopVariable(reservedInNestedScopes?: boolean): Identifier {
         let flags = GeneratedIdentifierFlags.Loop;
         if (reservedInNestedScopes) flags |= GeneratedIdentifierFlags.ReservedInNestedScopes;
+        return createBaseGeneratedIdentifier("", flags, /*prefix*/ undefined, /*suffix*/ undefined);
+    }
+
+    // @api
+    function createInlineCatchShorthandOrCatchClauseVariable(reservedInNestedScopes?: boolean): Identifier {
+        let flags = GeneratedIdentifierFlags.Auto;
         return createBaseGeneratedIdentifier("", flags, /*prefix*/ undefined, /*suffix*/ undefined);
     }
 

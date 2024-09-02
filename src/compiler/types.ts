@@ -8389,6 +8389,8 @@ export interface NodeFactory {
      */
     createLoopVariable(reservedInNestedScopes?: boolean): Identifier;
 
+    createInlineCatchShorthandOrCatchClauseVariable(): Identifier;
+
     /** Create a unique name based on the supplied text. */
     createUniqueName(text: string, flags?: GeneratedIdentifierFlags): Identifier;
     /** @internal */ createUniqueName(text: string, flags?: GeneratedIdentifierFlags, prefix?: string | GeneratedNamePart, suffix?: string): Identifier; // eslint-disable-line @typescript-eslint/unified-signatures

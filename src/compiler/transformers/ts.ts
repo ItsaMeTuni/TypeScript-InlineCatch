@@ -1793,37 +1793,45 @@ export function transformTypeScript(context: TransformationContext) {
     }
 
     function visitInlineCatchShorthandOrExpression(node: InlineCatchShorthandOrExpression) {
-        // const block = factory.createBlock(
-        //     [
-        //         factory.createTryStatement(
-        //             // tryBlock
-        //             factory.createBlock(),
-        //             // catchClause
-        //             factory.createBlock()
-        //         )
-        //     ],
-        //     true,
-        // );
-        //
-        // const arrowFunction = factory.createArrowFunction(
-        //     undefined,
-        //     undefined,
-        //     [],
-        //     undefined,
-        //     undefined,
-        //     block,
-        // )
+        const id =  factory.createInlineCatchShorthandOrCatchClauseVariable();
 
-        // node.parent.child == node;
-        // node.parent.child = helloNode;
-        // if (expression) thenStatement else elseStatement
-        //
+        const arrowFunction = factory.createImmediatelyInvokedArrowFunction(
+            [
+                factory.createTryStatement(
+                    // tryBlock
+                    factory.createBlock(
+                        [
+                            // return <tryExpression>
+                            factory.createReturnStatement(
+                                node.tryExpression
+                            )
+                        ]
+                    ),
+                    // catchClause
+                    factory.createCatchClause(
+                        // variableDeclaration
+                        factory.createVariableDeclaration(
+                            id
+                        ),
+                        //block
+                        factory.createBlock(
+                            [
+                                // return <catchExpression>
+                                factory.createReturnStatement(
+                                    node.catchExpression
+                                )
+                            ]
+                        )
+                    ),
+                    // finallyBlock
+                    undefined
+                )
+            ],
+        )
 
         return setOriginalNode(
             setTextRange(
-                factory.createStringLiteral(
-                    /*text*/'hello, world'
-                ),
+                arrowFunction,
                 node,
             ),
             node,
