@@ -5103,9 +5103,7 @@ namespace Parser {
         }
 
         // It wasn't an assignment or a lambda.
-        console.log('hello')
         const retVal = parseInlineCatchShorthandOr(expr, pos, allowReturnTypeInArrowFunction);
-        console.log('goodbye')
         return retVal;
     }
 

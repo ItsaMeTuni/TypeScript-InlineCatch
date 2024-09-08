@@ -551,7 +551,7 @@ export function createNodeFactory(flags: NodeFactoryFlags, baseFactory: BaseNode
         createIdentifier,
         createTempVariable,
         createLoopVariable,
-        createInlineCatchShorthandOrCatchClauseVariable
+        createInlineCatchShorthandOrCatchClauseVariable,
         createUniqueName,
         getGeneratedNameForNode,
         createPrivateIdentifier,

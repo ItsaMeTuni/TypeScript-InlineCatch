@@ -430,7 +430,7 @@ import {
     InferenceFlags,
     InferenceInfo,
     InferencePriority,
-    InferTypeNode,
+    InferTypeNode, InlineCatchShorthandOrExpression,
     InstanceofExpression,
     InstantiableType,
     InstantiationExpressionType,
@@ -39031,6 +39031,15 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         return getUnionType([type1, type2], UnionReduction.Subtype);
     }
 
+    function checkInlineCatchShorthandOrExpression(node: InlineCatchShorthandOrExpression, checkMode?: CheckMode) {
+        checkGrammarStatementInAmbientContext(node);
+
+        const type1 = checkExpression(node.tryExpression, checkMode);
+        const type2 = checkExpression(node.catchExpression, checkMode);
+
+        return getUnionType([type1, type2], UnionReduction.Subtype);
+    }
+
     function isTemplateLiteralContext(node: Node): boolean {
         const parent = node.parent;
         return isParenthesizedExpression(parent) && isTemplateLiteralContext(parent) ||
@@ -39610,6 +39619,8 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                 return checkBinaryExpression(node as BinaryExpression, checkMode);
             case SyntaxKind.ConditionalExpression:
                 return checkConditionalExpression(node as ConditionalExpression, checkMode);
+            case SyntaxKind.InlineCatchShorthandOrExpression:
+                return checkInlineCatchShorthandOrExpression(node as InlineCatchShorthandOrExpression, checkMode);
             case SyntaxKind.SpreadElement:
                 return checkSpreadExpression(node as SpreadElement, checkMode);
             case SyntaxKind.OmittedExpression:
