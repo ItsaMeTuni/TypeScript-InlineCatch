@@ -152,6 +152,7 @@ import {
     IndexSignatureDeclaration,
     InferTypeNode,
     InputFiles,
+    InlineCatchShorthandOrExpression,
     InterfaceDeclaration,
     InternalEmitFlags,
     IntersectionTypeNode,
@@ -478,7 +479,7 @@ import {
     VoidExpression,
     WhileStatement,
     WithStatement,
-    YieldExpression,
+    YieldExpression, InlineCatchShorthandOrKeyword,
 } from "../_namespaces/ts";
 
 let nextAutoGenerateId = 0;
@@ -550,6 +551,7 @@ export function createNodeFactory(flags: NodeFactoryFlags, baseFactory: BaseNode
         createIdentifier,
         createTempVariable,
         createLoopVariable,
+        createInlineCatchShorthandOrCatchClauseVariable,
         createUniqueName,
         getGeneratedNameForNode,
         createPrivateIdentifier,
@@ -695,6 +697,8 @@ export function createNodeFactory(flags: NodeFactoryFlags, baseFactory: BaseNode
         updatePostfixUnaryExpression,
         createBinaryExpression,
         updateBinaryExpression,
+        createInlineCatchShorthandOrExpression,
+        updateInlineCatchShorthandOrExpression,
         createConditionalExpression,
         updateConditionalExpression,
         createTemplateExpression,
@@ -1385,6 +1389,12 @@ export function createNodeFactory(flags: NodeFactoryFlags, baseFactory: BaseNode
     function createLoopVariable(reservedInNestedScopes?: boolean): Identifier {
         let flags = GeneratedIdentifierFlags.Loop;
         if (reservedInNestedScopes) flags |= GeneratedIdentifierFlags.ReservedInNestedScopes;
+        return createBaseGeneratedIdentifier("", flags, /*prefix*/ undefined, /*suffix*/ undefined);
+    }
+
+    // @api
+    function createInlineCatchShorthandOrCatchClauseVariable(reservedInNestedScopes?: boolean): Identifier {
+        let flags = GeneratedIdentifierFlags.Auto;
         return createBaseGeneratedIdentifier("", flags, /*prefix*/ undefined, /*suffix*/ undefined);
     }
 
@@ -3486,6 +3496,32 @@ export function createNodeFactory(flags: NodeFactoryFlags, baseFactory: BaseNode
                 || node.right !== right
             ? update(createBinaryExpression(left, operator, right), node)
             : node;
+    }
+
+    function createInlineCatchShorthandOrExpression(tryExpression: Expression, orKeyword: InlineCatchShorthandOrKeyword, catchExpression: Expression) {
+        const node = createBaseNode<InlineCatchShorthandOrExpression>(SyntaxKind.InlineCatchShorthandOrExpression);
+        node.tryExpression = tryExpression;
+        node.orKeyword = orKeyword;
+        node.catchExpression = catchExpression;
+        node.transformFlags |=
+            propagateChildFlags(node.tryExpression) |
+            propagateChildFlags(node.catchExpression) |
+            TransformFlags.ContainsTypeScript;
+
+        return node;
+    }
+
+    function updateInlineCatchShorthandOrExpression(
+        node: InlineCatchShorthandOrExpression,
+        tryExpression: Expression,
+        orKeyword: InlineCatchShorthandOrKeyword,
+        catchExpression: Expression
+    ): InlineCatchShorthandOrExpression {
+        return node.tryExpression !== tryExpression
+            || node.orKeyword !== orKeyword
+            || node.catchExpression !== catchExpression
+                    ? update(createInlineCatchShorthandOrExpression(tryExpression, orKeyword, catchExpression), node)
+                    : node;
     }
 
     // @api

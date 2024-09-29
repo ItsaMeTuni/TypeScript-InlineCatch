@@ -167,6 +167,7 @@ export const enum SyntaxKind {
     SwitchKeyword,
     ThisKeyword,
     ThrowKeyword,
+    InlineCatchShorthandOrKeyword,
     TrueKeyword,
     TryKeyword,
     TypeOfKeyword,
@@ -293,6 +294,7 @@ export const enum SyntaxKind {
     PrefixUnaryExpression,
     PostfixUnaryExpression,
     BinaryExpression,
+    InlineCatchShorthandOrExpression,
     ConditionalExpression,
     TemplateExpression,
     YieldExpression,
@@ -654,6 +656,7 @@ export type KeywordSyntaxKind =
     | SyntaxKind.SwitchKeyword
     | SyntaxKind.SymbolKeyword
     | SyntaxKind.ThisKeyword
+    | SyntaxKind.InlineCatchShorthandOrKeyword
     | SyntaxKind.ThrowKeyword
     | SyntaxKind.TrueKeyword
     | SyntaxKind.TryKeyword
@@ -1109,6 +1112,7 @@ export type HasChildren =
     | PrefixUnaryExpression
     | PostfixUnaryExpression
     | BinaryExpression
+    | InlineCatchShorthandOrExpression
     | ConditionalExpression
     | TemplateExpression
     | YieldExpression
@@ -1604,6 +1608,7 @@ export type AssertsKeyword = KeywordToken<SyntaxKind.AssertsKeyword>;
 export type AssertKeyword = KeywordToken<SyntaxKind.AssertKeyword>;
 export type AwaitKeyword = KeywordToken<SyntaxKind.AwaitKeyword>;
 export type CaseKeyword = KeywordToken<SyntaxKind.CaseKeyword>;
+export type InlineCatchShorthandOrKeyword = KeywordToken<SyntaxKind.InlineCatchShorthandOrKeyword>;
 
 export interface ModifierToken<TKind extends ModifierSyntaxKind> extends KeywordToken<TKind> {
 }
@@ -2702,6 +2707,18 @@ export type ArrayBindingOrAssignmentPattern =
 export type AssignmentPattern = ObjectLiteralExpression | ArrayLiteralExpression;
 
 export type BindingOrAssignmentPattern = ObjectBindingOrAssignmentPattern | ArrayBindingOrAssignmentPattern;
+
+export interface InlineCatchShorthandOrExpression extends Expression {
+    readonly kind: SyntaxKind.InlineCatchShorthandOrExpression;
+
+    /** Left side of the `or` operator. In `a or b`, this would be `a`. */
+    readonly tryExpression: Expression;
+
+    readonly orKeyword: InlineCatchShorthandOrKeyword;
+
+    /** Right side of the `or` operator. In `a or b`, this would be `b`. */
+    readonly catchExpression: Expression;
+}
 
 export interface ConditionalExpression extends Expression {
     readonly kind: SyntaxKind.ConditionalExpression;
@@ -8372,6 +8389,8 @@ export interface NodeFactory {
      */
     createLoopVariable(reservedInNestedScopes?: boolean): Identifier;
 
+    createInlineCatchShorthandOrCatchClauseVariable(): Identifier;
+
     /** Create a unique name based on the supplied text. */
     createUniqueName(text: string, flags?: GeneratedIdentifierFlags): Identifier;
     /** @internal */ createUniqueName(text: string, flags?: GeneratedIdentifierFlags, prefix?: string | GeneratedNamePart, suffix?: string): Identifier; // eslint-disable-line @typescript-eslint/unified-signatures
@@ -8578,6 +8597,8 @@ export interface NodeFactory {
     updatePostfixUnaryExpression(node: PostfixUnaryExpression, operand: Expression): PostfixUnaryExpression;
     createBinaryExpression(left: Expression, operator: BinaryOperator | BinaryOperatorToken, right: Expression): BinaryExpression;
     updateBinaryExpression(node: BinaryExpression, left: Expression, operator: BinaryOperator | BinaryOperatorToken, right: Expression): BinaryExpression;
+    createInlineCatchShorthandOrExpression(tryExpression: Expression, orKeyword: InlineCatchShorthandOrKeyword, catchExpression: Expression): InlineCatchShorthandOrExpression;
+    updateInlineCatchShorthandOrExpression(node: InlineCatchShorthandOrExpression, tryExpression: Expression, orKeyword: InlineCatchShorthandOrKeyword, catchExpression: Expression): InlineCatchShorthandOrExpression;
     createConditionalExpression(condition: Expression, questionToken: QuestionToken | undefined, whenTrue: Expression, colonToken: ColonToken | undefined, whenFalse: Expression): ConditionalExpression;
     updateConditionalExpression(node: ConditionalExpression, condition: Expression, questionToken: QuestionToken, whenTrue: Expression, colonToken: ColonToken, whenFalse: Expression): ConditionalExpression;
     createTemplateExpression(head: TemplateHead, templateSpans: readonly TemplateSpan[]): TemplateExpression;

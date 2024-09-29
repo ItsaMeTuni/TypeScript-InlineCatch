@@ -119,7 +119,7 @@ import {
     identifierToKeywordKind,
     idText,
     IfStatement,
-    ImportClause,
+    ImportClause, InlineCatchShorthandOrExpression,
     InternalSymbolName,
     isAliasableExpression,
     isAmbientModule,
@@ -1162,6 +1162,9 @@ function createBinder(): (file: SourceFile, options: CompilerOptions) => void {
             case SyntaxKind.ConditionalExpression:
                 bindConditionalExpressionFlow(node as ConditionalExpression);
                 break;
+            case SyntaxKind.InlineCatchShorthandOrExpression:
+                bindInlineCatchShorthandOrExpressionFlow(node as InlineCatchShorthandOrExpression);
+                break;
             case SyntaxKind.VariableDeclaration:
                 bindVariableDeclarationFlow(node as VariableDeclaration);
                 break;
@@ -1660,6 +1663,27 @@ function createBinder(): (file: SourceFile, options: CompilerOptions) => void {
         else {
             currentFlow = finishFlowLabel(normalExitLabel);
         }
+    }
+
+    function bindInlineCatchShorthandOrExpressionFlow(node: InlineCatchShorthandOrExpression) {
+        const saveExceptionTarget = currentExceptionTarget;
+        const normalExitLabel = createBranchLabel();
+        let exceptionLabel = createBranchLabel();
+
+        addAntecedent(exceptionLabel, currentFlow);
+        currentExceptionTarget = exceptionLabel;
+        bind(node.tryExpression);
+        addAntecedent(normalExitLabel, currentFlow);
+
+        // Start of catch clause is the target of exceptions from try block.
+        currentFlow = finishFlowLabel(exceptionLabel);
+
+        currentExceptionTarget = saveExceptionTarget;
+
+        bind(node.catchExpression);
+        addAntecedent(normalExitLabel, currentFlow);
+
+        currentFlow = finishFlowLabel(normalExitLabel);
     }
 
     function bindSwitchStatement(node: SwitchStatement): void {

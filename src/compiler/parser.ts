@@ -127,6 +127,7 @@ import {
     IndexedAccessTypeNode,
     IndexSignatureDeclaration,
     InferTypeNode,
+    InlineCatchShorthandOrExpression,
     InterfaceDeclaration,
     IntersectionTypeNode,
     isArray,
@@ -396,6 +397,8 @@ import {
     YieldExpression,
 } from "./_namespaces/ts";
 import * as performance from "./_namespaces/ts.performance";
+import * as fs from 'node:fs';
+import * as util from 'node:util';
 
 const enum SignatureFlags {
     None = 0,
@@ -791,6 +794,9 @@ const forEachChildTable: ForEachChildTable = {
     },
     [SyntaxKind.MetaProperty]: function forEachChildInMetaProperty<T>(node: MetaProperty, cbNode: (node: Node) => T | undefined, _cbNodes?: (nodes: NodeArray<Node>) => T | undefined): T | undefined {
         return visitNode(cbNode, node.name);
+    },
+    [SyntaxKind.InlineCatchShorthandOrExpression]: function forEachChildInInlineCatchShorthandOrExpression<T>(node: InlineCatchShorthandOrExpression, cbNode: (node: Node) => T | undefined, _cbNodes?: (nodes: NodeArray<Node>) => T | undefined): T | undefined {
+      return visitNode(cbNode, node.tryExpression) || visitNode(cbNode, node.orKeyword) || visitNode(cbNode, node.catchExpression);
     },
     [SyntaxKind.ConditionalExpression]: function forEachChildInConditionalExpression<T>(node: ConditionalExpression, cbNode: (node: Node) => T | undefined, _cbNodes?: (nodes: NodeArray<Node>) => T | undefined): T | undefined {
         return visitNode(cbNode, node.condition) ||
@@ -1790,6 +1796,7 @@ namespace Parser {
         nextToken();
 
         const statements = parseList(ParsingContext.SourceElements, parseStatement);
+        fs.writeFileSync(`${process.cwd()}/before_transforms.text`, util.inspect(statements, { depth: null }));
         Debug.assert(token() === SyntaxKind.EndOfFileToken);
         const endHasJSDoc = hasPrecedingJSDocComment();
         const endOfFileToken = withJSDoc(parseTokenNode<EndOfFileToken>(), endHasJSDoc);
@@ -5095,8 +5102,9 @@ namespace Parser {
             return makeBinaryExpression(expr, parseTokenNode(), parseAssignmentExpressionOrHigher(allowReturnTypeInArrowFunction), pos);
         }
 
-        // It wasn't an assignment or a lambda.  This is a conditional expression:
-        return parseConditionalExpressionRest(expr, pos, allowReturnTypeInArrowFunction);
+        // It wasn't an assignment or a lambda.
+        const retVal = parseInlineCatchShorthandOr(expr, pos, allowReturnTypeInArrowFunction);
+        return retVal;
     }
 
     function isYieldExpression(): boolean {
@@ -5532,6 +5540,23 @@ namespace Parser {
             : doOutsideOfAwaitContext(() => parseAssignmentExpressionOrHigher(allowReturnTypeInArrowFunction));
         topLevel = savedTopLevel;
         return node;
+    }
+
+    function parseInlineCatchShorthandOr(expr: Expression, pos: number, allowReturnTypeInArrowFunction: boolean): Expression {
+        const leftOperand = parseConditionalExpressionRest(expr, pos, allowReturnTypeInArrowFunction);
+
+        // We are passed in an expression which was produced from parseBinaryExpressionOrHigher.
+        const orKeyword = parseOptionalToken(SyntaxKind.InlineCatchShorthandOrKeyword);
+        if (!orKeyword) {
+            return leftOperand;
+        }
+
+        const catchExpression = parseAssignmentExpressionOrHigher(allowReturnTypeInArrowFunction);
+
+        return finishNode(
+            factory.createInlineCatchShorthandOrExpression(leftOperand, orKeyword, catchExpression),
+            pos,
+        )
     }
 
     function parseConditionalExpressionRest(leftOperand: Expression, pos: number, allowReturnTypeInArrowFunction: boolean): Expression {
