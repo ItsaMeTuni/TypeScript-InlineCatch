@@ -295,6 +295,7 @@ export const enum SyntaxKind {
     PostfixUnaryExpression,
     BinaryExpression,
     InlineCatchShorthandOrExpression,
+    InlineCatchUnknownExpression,
     ConditionalExpression,
     TemplateExpression,
     YieldExpression,
@@ -657,6 +658,7 @@ export type KeywordSyntaxKind =
     | SyntaxKind.SymbolKeyword
     | SyntaxKind.ThisKeyword
     | SyntaxKind.InlineCatchShorthandOrKeyword
+    | SyntaxKind.UnknownKeyword
     | SyntaxKind.ThrowKeyword
     | SyntaxKind.TrueKeyword
     | SyntaxKind.TryKeyword
@@ -664,7 +666,6 @@ export type KeywordSyntaxKind =
     | SyntaxKind.TypeOfKeyword
     | SyntaxKind.UndefinedKeyword
     | SyntaxKind.UniqueKeyword
-    | SyntaxKind.UnknownKeyword
     | SyntaxKind.UsingKeyword
     | SyntaxKind.VarKeyword
     | SyntaxKind.VoidKeyword
@@ -1113,6 +1114,7 @@ export type HasChildren =
     | PostfixUnaryExpression
     | BinaryExpression
     | InlineCatchShorthandOrExpression
+    | InlineCatchUnknownExpression
     | ConditionalExpression
     | TemplateExpression
     | YieldExpression
@@ -1609,6 +1611,8 @@ export type AssertKeyword = KeywordToken<SyntaxKind.AssertKeyword>;
 export type AwaitKeyword = KeywordToken<SyntaxKind.AwaitKeyword>;
 export type CaseKeyword = KeywordToken<SyntaxKind.CaseKeyword>;
 export type InlineCatchShorthandOrKeyword = KeywordToken<SyntaxKind.InlineCatchShorthandOrKeyword>;
+export type CatchKeyword = KeywordToken<SyntaxKind.CatchKeyword>;
+export type UnknownKeyword = KeywordToken<SyntaxKind.UnknownKeyword>;
 
 export interface ModifierToken<TKind extends ModifierSyntaxKind> extends KeywordToken<TKind> {
 }
@@ -2717,6 +2721,15 @@ export interface InlineCatchShorthandOrExpression extends Expression {
     readonly orKeyword: InlineCatchShorthandOrKeyword;
 
     /** Right side of the `or` operator. In `a or b`, this would be `b`. */
+    readonly catchExpression: Expression;
+}
+
+export interface InlineCatchUnknownExpression extends Expression {
+    readonly kind: SyntaxKind.InlineCatchUnknownExpression;
+    readonly tryExpression: Expression;
+    readonly catchKeyword: CatchKeyword;
+    readonly unknownKeyword: UnknownKeyword;
+    readonly colonToken: ColonToken;
     readonly catchExpression: Expression;
 }
 
@@ -8391,6 +8404,8 @@ export interface NodeFactory {
 
     createInlineCatchShorthandOrCatchClauseVariable(): Identifier;
 
+    createInlineCatchUnknownClauseVariable(): Identifier;
+
     /** Create a unique name based on the supplied text. */
     createUniqueName(text: string, flags?: GeneratedIdentifierFlags): Identifier;
     /** @internal */ createUniqueName(text: string, flags?: GeneratedIdentifierFlags, prefix?: string | GeneratedNamePart, suffix?: string): Identifier; // eslint-disable-line @typescript-eslint/unified-signatures
@@ -8599,6 +8614,8 @@ export interface NodeFactory {
     updateBinaryExpression(node: BinaryExpression, left: Expression, operator: BinaryOperator | BinaryOperatorToken, right: Expression): BinaryExpression;
     createInlineCatchShorthandOrExpression(tryExpression: Expression, orKeyword: InlineCatchShorthandOrKeyword, catchExpression: Expression): InlineCatchShorthandOrExpression;
     updateInlineCatchShorthandOrExpression(node: InlineCatchShorthandOrExpression, tryExpression: Expression, orKeyword: InlineCatchShorthandOrKeyword, catchExpression: Expression): InlineCatchShorthandOrExpression;
+    createInlineCatchUnknownExpression(tryExpression: Expression, catchKeyword: CatchKeyword, unknownKeyword: UnknownKeyword, colonToken: ColonToken, catchExpression: Expression): InlineCatchUnknownExpression;
+    updateInlineCatchUnknownExpression(node: InlineCatchUnknownExpression, tryExpression: Expression, catchKeyword: CatchKeyword, unknownKeyword: UnknownKeyword, colonToken: ColonToken, catchExpression: Expression): InlineCatchUnknownExpression;
     createConditionalExpression(condition: Expression, questionToken: QuestionToken | undefined, whenTrue: Expression, colonToken: ColonToken | undefined, whenFalse: Expression): ConditionalExpression;
     updateConditionalExpression(node: ConditionalExpression, condition: Expression, questionToken: QuestionToken, whenTrue: Expression, colonToken: ColonToken, whenFalse: Expression): ConditionalExpression;
     createTemplateExpression(head: TemplateHead, templateSpans: readonly TemplateSpan[]): TemplateExpression;

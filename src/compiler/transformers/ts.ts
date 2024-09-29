@@ -65,13 +65,14 @@ import {
     hasSyntacticModifier,
     HeritageClause,
     Identifier,
-    idText, IfStatement,
+    idText,
     ImportClause,
     ImportDeclaration,
     ImportEqualsDeclaration,
     ImportsNotUsedAsValues,
     ImportSpecifier,
     InitializedVariableDeclaration, InlineCatchShorthandOrExpression,
+    InlineCatchUnknownExpression,
     insertStatementsAfterStandardPrologue,
     InternalEmitFlags,
     isAccessExpression,
@@ -840,6 +841,9 @@ export function transformTypeScript(context: TransformationContext) {
 
             case SyntaxKind.InlineCatchShorthandOrExpression:
                 return visitInlineCatchShorthandOrExpression(node as InlineCatchShorthandOrExpression);
+
+            case SyntaxKind.InlineCatchUnknownExpression:
+                return visitInlineCatchUnknownExpression(node as InlineCatchUnknownExpression);
 
             default:
                 // node contains some other TypeScript syntax
@@ -1823,8 +1827,52 @@ export function transformTypeScript(context: TransformationContext) {
                             ]
                         )
                     ),
-                    // finallyBlock
-                    undefined
+                    /*finallyBlock*/ undefined
+                )
+            ],
+        )
+
+        return setOriginalNode(
+            setTextRange(
+                arrowFunction,
+                node,
+            ),
+            node,
+        );
+    }
+
+    function visitInlineCatchUnknownExpression(node: InlineCatchUnknownExpression) {
+        const id =  factory.createInlineCatchUnknownClauseVariable();
+
+        const arrowFunction = factory.createImmediatelyInvokedArrowFunction(
+            [
+                factory.createTryStatement(
+                    // tryBlock
+                    factory.createBlock(
+                        [
+                            // return <tryExpression>
+                            factory.createReturnStatement(
+                                node.tryExpression
+                            )
+                        ]
+                    ),
+                    // catchClause
+                    factory.createCatchClause(
+                        // variableDeclaration
+                        factory.createVariableDeclaration(
+                            id
+                        ),
+                        //block
+                        factory.createBlock(
+                            [
+                                // return <catchExpression>
+                                factory.createReturnStatement(
+                                    node.catchExpression
+                                )
+                            ]
+                        )
+                    ),
+                    /*finallyBlock*/ undefined
                 )
             ],
         )

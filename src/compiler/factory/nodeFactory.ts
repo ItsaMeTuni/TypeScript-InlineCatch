@@ -44,6 +44,7 @@ import {
     CaseOrDefaultClause,
     cast,
     CatchClause,
+    CatchKeyword,
     CharacterCodes,
     ClassDeclaration,
     ClassElement,
@@ -151,8 +152,10 @@ import {
     IndexedAccessTypeNode,
     IndexSignatureDeclaration,
     InferTypeNode,
-    InputFiles,
     InlineCatchShorthandOrExpression,
+InlineCatchShorthandOrKeyword,
+    InlineCatchUnknownExpression,
+    InputFiles,
     InterfaceDeclaration,
     InternalEmitFlags,
     IntersectionTypeNode,
@@ -463,6 +466,7 @@ import {
     TypeReferenceNode,
     UnionOrIntersectionTypeNode,
     UnionTypeNode,
+    UnknownKeyword,
     UnparsedNode,
     UnparsedPrepend,
     UnparsedPrologue,
@@ -479,8 +483,7 @@ import {
     VoidExpression,
     WhileStatement,
     WithStatement,
-    YieldExpression, InlineCatchShorthandOrKeyword,
-} from "../_namespaces/ts";
+    YieldExpression, } from "../_namespaces/ts";
 
 let nextAutoGenerateId = 0;
 
@@ -552,6 +555,7 @@ export function createNodeFactory(flags: NodeFactoryFlags, baseFactory: BaseNode
         createTempVariable,
         createLoopVariable,
         createInlineCatchShorthandOrCatchClauseVariable,
+        createInlineCatchUnknownClauseVariable,
         createUniqueName,
         getGeneratedNameForNode,
         createPrivateIdentifier,
@@ -699,6 +703,8 @@ export function createNodeFactory(flags: NodeFactoryFlags, baseFactory: BaseNode
         updateBinaryExpression,
         createInlineCatchShorthandOrExpression,
         updateInlineCatchShorthandOrExpression,
+        createInlineCatchUnknownExpression,
+        updateInlineCatchUnknownExpression,
         createConditionalExpression,
         updateConditionalExpression,
         createTemplateExpression,
@@ -1394,6 +1400,12 @@ export function createNodeFactory(flags: NodeFactoryFlags, baseFactory: BaseNode
 
     // @api
     function createInlineCatchShorthandOrCatchClauseVariable(reservedInNestedScopes?: boolean): Identifier {
+        let flags = GeneratedIdentifierFlags.Auto;
+        return createBaseGeneratedIdentifier("", flags, /*prefix*/ undefined, /*suffix*/ undefined);
+    }
+
+    // @api
+    function createInlineCatchUnknownClauseVariable(reservedInNestedScopes?: boolean): Identifier {
         let flags = GeneratedIdentifierFlags.Auto;
         return createBaseGeneratedIdentifier("", flags, /*prefix*/ undefined, /*suffix*/ undefined);
     }
@@ -3521,6 +3533,38 @@ export function createNodeFactory(flags: NodeFactoryFlags, baseFactory: BaseNode
             || node.orKeyword !== orKeyword
             || node.catchExpression !== catchExpression
                     ? update(createInlineCatchShorthandOrExpression(tryExpression, orKeyword, catchExpression), node)
+                    : node;
+    }
+
+    function createInlineCatchUnknownExpression(tryExpression: Expression, catchKeyword: CatchKeyword, unknownKeyword: UnknownKeyword, colonToken: ColonToken, catchExpression: Expression) {
+        const node = createBaseNode<InlineCatchUnknownExpression>(SyntaxKind.InlineCatchUnknownExpression);
+        node.tryExpression = tryExpression;
+        node.catchKeyword = catchKeyword;
+        node.unknownKeyword = unknownKeyword;
+        node.colonToken = colonToken;
+        node.catchExpression = catchExpression;
+        node.transformFlags |=
+            propagateChildFlags(node.tryExpression) |
+            propagateChildFlags(node.catchExpression) |
+            TransformFlags.ContainsTypeScript;
+
+        return node;
+    }
+
+    function updateInlineCatchUnknownExpression(
+        node: InlineCatchUnknownExpression,
+        tryExpression: Expression,
+        catchKeyword: CatchKeyword,
+        unknownKeyword: UnknownKeyword,
+        colonToken: ColonToken,
+        catchExpression: Expression
+    ): InlineCatchUnknownExpression {
+        return node.tryExpression !== tryExpression
+            || node.catchKeyword !== catchKeyword
+            || node.unknownKeyword !== unknownKeyword
+            || node.colonToken !== colonToken
+            || node.catchExpression !== catchExpression
+                    ? update(createInlineCatchUnknownExpression(tryExpression, catchKeyword, unknownKeyword, colonToken, catchExpression), node)
                     : node;
     }
 

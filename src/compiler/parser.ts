@@ -1,3 +1,6 @@
+import * as fs from 'node:fs';
+import * as util from 'node:util';
+
 import {
     AccessorDeclaration,
     addRange,
@@ -128,6 +131,7 @@ import {
     IndexSignatureDeclaration,
     InferTypeNode,
     InlineCatchShorthandOrExpression,
+    InlineCatchUnknownExpression,
     InterfaceDeclaration,
     IntersectionTypeNode,
     isArray,
@@ -397,8 +401,6 @@ import {
     YieldExpression,
 } from "./_namespaces/ts";
 import * as performance from "./_namespaces/ts.performance";
-import * as fs from 'node:fs';
-import * as util from 'node:util';
 
 const enum SignatureFlags {
     None = 0,
@@ -796,7 +798,10 @@ const forEachChildTable: ForEachChildTable = {
         return visitNode(cbNode, node.name);
     },
     [SyntaxKind.InlineCatchShorthandOrExpression]: function forEachChildInInlineCatchShorthandOrExpression<T>(node: InlineCatchShorthandOrExpression, cbNode: (node: Node) => T | undefined, _cbNodes?: (nodes: NodeArray<Node>) => T | undefined): T | undefined {
-      return visitNode(cbNode, node.tryExpression) || visitNode(cbNode, node.orKeyword) || visitNode(cbNode, node.catchExpression);
+        return visitNode(cbNode, node.tryExpression) || visitNode(cbNode, node.orKeyword) || visitNode(cbNode, node.catchExpression);
+    },
+    [SyntaxKind.InlineCatchUnknownExpression]: function forEachChildInInlineCatchUnknownExpression<T>(node: InlineCatchUnknownExpression, cbNode: (node: Node) => T | undefined, _cbNodes?: (nodes: NodeArray<Node>) => T | undefined): T | undefined {
+        return visitNode(cbNode, node.tryExpression) || visitNode(cbNode, node.catchKeyword) || visitNode(cbNode, node.unknownKeyword) || visitNode(cbNode, node.colonToken) || visitNode(cbNode, node.catchExpression);
     },
     [SyntaxKind.ConditionalExpression]: function forEachChildInConditionalExpression<T>(node: ConditionalExpression, cbNode: (node: Node) => T | undefined, _cbNodes?: (nodes: NodeArray<Node>) => T | undefined): T | undefined {
         return visitNode(cbNode, node.condition) ||
@@ -5102,9 +5107,7 @@ namespace Parser {
             return makeBinaryExpression(expr, parseTokenNode(), parseAssignmentExpressionOrHigher(allowReturnTypeInArrowFunction), pos);
         }
 
-        // It wasn't an assignment or a lambda.
-        const retVal = parseInlineCatchShorthandOr(expr, pos, allowReturnTypeInArrowFunction);
-        return retVal;
+        return parseInlineCatchShorthandOr(expr, pos, allowReturnTypeInArrowFunction);
     }
 
     function isYieldExpression(): boolean {
@@ -5548,13 +5551,29 @@ namespace Parser {
         // We are passed in an expression which was produced from parseBinaryExpressionOrHigher.
         const orKeyword = parseOptionalToken(SyntaxKind.InlineCatchShorthandOrKeyword);
         if (!orKeyword) {
-            return leftOperand;
+            return parseInlineCatchUnknownExpression(leftOperand, pos, allowReturnTypeInArrowFunction);
         }
 
         const catchExpression = parseAssignmentExpressionOrHigher(allowReturnTypeInArrowFunction);
 
         return finishNode(
             factory.createInlineCatchShorthandOrExpression(leftOperand, orKeyword, catchExpression),
+            pos,
+        )
+    }
+
+    function parseInlineCatchUnknownExpression(expr: Expression, pos: number, allowReturnTypeInArrowFunction: boolean): Expression {
+        const catchKeyword = parseOptionalToken(SyntaxKind.CatchKeyword);
+        if (!catchKeyword) {
+            return expr;
+        }
+        const unknownKeyword = parseOptionalToken(SyntaxKind.UnknownKeyword);
+        const colonToken = parseOptionalToken(SyntaxKind.ColonToken);
+
+        const catchExpression = parseAssignmentExpressionOrHigher(allowReturnTypeInArrowFunction);
+
+        return finishNode(
+            factory.createInlineCatchUnknownExpression(expr, catchKeyword, unknownKeyword, colonToken, catchExpression),
             pos,
         )
     }

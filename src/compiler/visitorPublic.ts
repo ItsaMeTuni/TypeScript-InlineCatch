@@ -24,6 +24,7 @@ import {
     isCaseBlock,
     isCaseOrDefaultClause,
     isCatchClause,
+    isCatchKeyword,
     isClassElement,
     isColonToken,
     isConciseBody,
@@ -44,7 +45,8 @@ import {
     isImportAttributeName,
     isImportAttributes,
     isImportClause,
-    isImportSpecifier, isInlineCatchShorthandOrKeyword,
+    isImportSpecifier,
+    isInlineCatchShorthandOrKeyword,
     isJsxAttributeLike,
     isJsxAttributeName,
     isJsxAttributes,
@@ -83,6 +85,7 @@ import {
     isTypeElement,
     isTypeNode,
     isTypeParameterDeclaration,
+    isUnknownKeyword,
     isVariableDeclaration,
     isVariableDeclarationList,
     LexicalEnvironmentFlags,
@@ -1178,6 +1181,17 @@ const visitEachChildTable: VisitEachChildTable = {
             node,
             Debug.checkDefined(nodeVisitor(node.tryExpression, visitor, isExpression)),
             tokenVisitor ? Debug.checkDefined(nodeVisitor(node.orKeyword, tokenVisitor, isInlineCatchShorthandOrKeyword)) : node.orKeyword,
+            Debug.checkDefined(nodeVisitor(node.catchExpression, visitor, isExpression)),
+        );
+    },
+
+    [SyntaxKind.InlineCatchUnknownExpression]: function visitEachChildOfInlineCatchUnknownExpression(node, visitor, context, _nodesVisitor, nodeVisitor, tokenVisitor) {
+        return context.factory.updateInlineCatchUnknownExpression(
+            node,
+            Debug.checkDefined(nodeVisitor(node.tryExpression, visitor, isExpression)),
+            tokenVisitor ? Debug.checkDefined(nodeVisitor(node.catchKeyword, tokenVisitor, isCatchKeyword)) : node.catchKeyword,
+            tokenVisitor ? Debug.checkDefined(nodeVisitor(node.unknownKeyword, tokenVisitor, isUnknownKeyword)) : node.unknownKeyword,
+            tokenVisitor ? Debug.checkDefined(nodeVisitor(node.colonToken, tokenVisitor, isColonToken)) : node.colonToken,
             Debug.checkDefined(nodeVisitor(node.catchExpression, visitor, isExpression)),
         );
     },
