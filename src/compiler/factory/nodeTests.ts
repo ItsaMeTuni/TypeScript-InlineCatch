@@ -25,6 +25,7 @@ import {
     CaseClause,
     CaseKeyword,
     CatchClause,
+    CatchKeyword,
     ClassDeclaration,
     ClassExpression,
     ClassStaticBlockDeclaration,
@@ -219,6 +220,7 @@ import {
     TypeQueryNode,
     TypeReferenceNode,
     UnionTypeNode,
+    UnknownKeyword,
     UnparsedPrepend,
     UnparsedSource,
     VariableDeclaration,
@@ -389,6 +391,14 @@ export function isCaseKeyword(node: Node): node is CaseKeyword {
 }
 
 export function isInlineCatchShorthandOrKeyword(node: Node): node is InlineCatchShorthandOrKeyword { return node.kind === SyntaxKind.InlineCatchShorthandOrKeyword; }
+
+export function isCatchKeyword(node: Node): node is CatchKeyword {
+    return node.kind === SyntaxKind.CatchKeyword;
+}
+
+export function isUnknownKeyword(node: Node): node is UnknownKeyword {
+    return node.kind === SyntaxKind.UnknownKeyword;
+}
 
 // Names
 
