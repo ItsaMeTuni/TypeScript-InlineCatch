@@ -1185,8 +1185,8 @@ const visitEachChildTable: VisitEachChildTable = {
         );
     },
 
-    [SyntaxKind.InlineCatchUnknownExpression]: function visitEachChildOfInlineCatchUnknownExpression(node, visitor, context, _nodesVisitor, nodeVisitor, tokenVisitor) {
-        return context.factory.updateInlineCatchUnknownExpression(
+    [SyntaxKind.InlineCatchFullExpression]: function visitEachChildOfInlineCatchFullExpression(node, visitor, context, _nodesVisitor, nodeVisitor, tokenVisitor) {
+        return context.factory.updateInlineCatchFullExpression(
             node,
             Debug.checkDefined(nodeVisitor(node.tryExpression, visitor, isExpression)),
             tokenVisitor ? Debug.checkDefined(nodeVisitor(node.catchKeyword, tokenVisitor, isCatchKeyword)) : node.catchKeyword,

@@ -154,7 +154,7 @@ import {
     InferTypeNode,
     InlineCatchShorthandOrExpression,
 InlineCatchShorthandOrKeyword,
-    InlineCatchUnknownExpression,
+    InlineCatchFullExpression,
     InputFiles,
     InterfaceDeclaration,
     InternalEmitFlags,
@@ -555,7 +555,7 @@ export function createNodeFactory(flags: NodeFactoryFlags, baseFactory: BaseNode
         createTempVariable,
         createLoopVariable,
         createInlineCatchShorthandOrCatchClauseVariable,
-        createInlineCatchUnknownClauseVariable,
+        createInlineCatchFullClauseVariable,
         createUniqueName,
         getGeneratedNameForNode,
         createPrivateIdentifier,
@@ -703,8 +703,8 @@ export function createNodeFactory(flags: NodeFactoryFlags, baseFactory: BaseNode
         updateBinaryExpression,
         createInlineCatchShorthandOrExpression,
         updateInlineCatchShorthandOrExpression,
-        createInlineCatchUnknownExpression,
-        updateInlineCatchUnknownExpression,
+        createInlineCatchFullExpression,
+        updateInlineCatchFullExpression,
         createConditionalExpression,
         updateConditionalExpression,
         createTemplateExpression,
@@ -1405,7 +1405,7 @@ export function createNodeFactory(flags: NodeFactoryFlags, baseFactory: BaseNode
     }
 
     // @api
-    function createInlineCatchUnknownClauseVariable(reservedInNestedScopes?: boolean): Identifier {
+    function createInlineCatchFullClauseVariable(reservedInNestedScopes?: boolean): Identifier {
         let flags = GeneratedIdentifierFlags.Auto;
         return createBaseGeneratedIdentifier("", flags, /*prefix*/ undefined, /*suffix*/ undefined);
     }
@@ -3536,8 +3536,8 @@ export function createNodeFactory(flags: NodeFactoryFlags, baseFactory: BaseNode
                     : node;
     }
 
-    function createInlineCatchUnknownExpression(tryExpression: Expression, catchKeyword: CatchKeyword, unknownKeyword: UnknownKeyword, colonToken: ColonToken, catchExpression: Expression) {
-        const node = createBaseNode<InlineCatchUnknownExpression>(SyntaxKind.InlineCatchUnknownExpression);
+    function createInlineCatchFullExpression(tryExpression: Expression, catchKeyword: CatchKeyword, unknownKeyword: UnknownKeyword, colonToken: ColonToken, catchExpression: Expression) {
+        const node = createBaseNode<InlineCatchFullExpression>(SyntaxKind.InlineCatchFullExpression);
         node.tryExpression = tryExpression;
         node.catchKeyword = catchKeyword;
         node.unknownKeyword = unknownKeyword;
@@ -3551,20 +3551,20 @@ export function createNodeFactory(flags: NodeFactoryFlags, baseFactory: BaseNode
         return node;
     }
 
-    function updateInlineCatchUnknownExpression(
-        node: InlineCatchUnknownExpression,
+    function updateInlineCatchFullExpression(
+        node: InlineCatchFullExpression,
         tryExpression: Expression,
         catchKeyword: CatchKeyword,
         unknownKeyword: UnknownKeyword,
         colonToken: ColonToken,
         catchExpression: Expression
-    ): InlineCatchUnknownExpression {
+    ): InlineCatchFullExpression {
         return node.tryExpression !== tryExpression
             || node.catchKeyword !== catchKeyword
             || node.unknownKeyword !== unknownKeyword
             || node.colonToken !== colonToken
             || node.catchExpression !== catchExpression
-                    ? update(createInlineCatchUnknownExpression(tryExpression, catchKeyword, unknownKeyword, colonToken, catchExpression), node)
+                    ? update(createInlineCatchFullExpression(tryExpression, catchKeyword, unknownKeyword, colonToken, catchExpression), node)
                     : node;
     }
 

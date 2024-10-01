@@ -72,7 +72,7 @@ import {
     ImportsNotUsedAsValues,
     ImportSpecifier,
     InitializedVariableDeclaration, InlineCatchShorthandOrExpression,
-    InlineCatchUnknownExpression,
+    InlineCatchFullExpression,
     insertStatementsAfterStandardPrologue,
     InternalEmitFlags,
     isAccessExpression,
@@ -842,8 +842,8 @@ export function transformTypeScript(context: TransformationContext) {
             case SyntaxKind.InlineCatchShorthandOrExpression:
                 return visitInlineCatchShorthandOrExpression(node as InlineCatchShorthandOrExpression);
 
-            case SyntaxKind.InlineCatchUnknownExpression:
-                return visitInlineCatchUnknownExpression(node as InlineCatchUnknownExpression);
+            case SyntaxKind.InlineCatchFullExpression:
+                return visitInlineCatchFullExpression(node as InlineCatchFullExpression);
 
             default:
                 // node contains some other TypeScript syntax
@@ -1841,8 +1841,8 @@ export function transformTypeScript(context: TransformationContext) {
         );
     }
 
-    function visitInlineCatchUnknownExpression(node: InlineCatchUnknownExpression) {
-        const id =  factory.createInlineCatchUnknownClauseVariable();
+    function visitInlineCatchFullExpression(node: InlineCatchFullExpression) {
+        const id =  factory.createInlineCatchFullClauseVariable();
 
         const arrowFunction = factory.createImmediatelyInvokedArrowFunction(
             [

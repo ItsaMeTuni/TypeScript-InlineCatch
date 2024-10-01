@@ -295,7 +295,7 @@ export const enum SyntaxKind {
     PostfixUnaryExpression,
     BinaryExpression,
     InlineCatchShorthandOrExpression,
-    InlineCatchUnknownExpression,
+    InlineCatchFullExpression,
     ConditionalExpression,
     TemplateExpression,
     YieldExpression,
@@ -1114,7 +1114,7 @@ export type HasChildren =
     | PostfixUnaryExpression
     | BinaryExpression
     | InlineCatchShorthandOrExpression
-    | InlineCatchUnknownExpression
+    | InlineCatchFullExpression
     | ConditionalExpression
     | TemplateExpression
     | YieldExpression
@@ -2724,8 +2724,8 @@ export interface InlineCatchShorthandOrExpression extends Expression {
     readonly catchExpression: Expression;
 }
 
-export interface InlineCatchUnknownExpression extends Expression {
-    readonly kind: SyntaxKind.InlineCatchUnknownExpression;
+export interface InlineCatchFullExpression extends Expression {
+    readonly kind: SyntaxKind.InlineCatchFullExpression;
     readonly tryExpression: Expression;
     readonly catchKeyword: CatchKeyword;
     readonly unknownKeyword: UnknownKeyword;
@@ -8404,7 +8404,7 @@ export interface NodeFactory {
 
     createInlineCatchShorthandOrCatchClauseVariable(): Identifier;
 
-    createInlineCatchUnknownClauseVariable(): Identifier;
+    createInlineCatchFullClauseVariable(): Identifier;
 
     /** Create a unique name based on the supplied text. */
     createUniqueName(text: string, flags?: GeneratedIdentifierFlags): Identifier;
@@ -8614,8 +8614,8 @@ export interface NodeFactory {
     updateBinaryExpression(node: BinaryExpression, left: Expression, operator: BinaryOperator | BinaryOperatorToken, right: Expression): BinaryExpression;
     createInlineCatchShorthandOrExpression(tryExpression: Expression, orKeyword: InlineCatchShorthandOrKeyword, catchExpression: Expression): InlineCatchShorthandOrExpression;
     updateInlineCatchShorthandOrExpression(node: InlineCatchShorthandOrExpression, tryExpression: Expression, orKeyword: InlineCatchShorthandOrKeyword, catchExpression: Expression): InlineCatchShorthandOrExpression;
-    createInlineCatchUnknownExpression(tryExpression: Expression, catchKeyword: CatchKeyword, unknownKeyword: UnknownKeyword, colonToken: ColonToken, catchExpression: Expression): InlineCatchUnknownExpression;
-    updateInlineCatchUnknownExpression(node: InlineCatchUnknownExpression, tryExpression: Expression, catchKeyword: CatchKeyword, unknownKeyword: UnknownKeyword, colonToken: ColonToken, catchExpression: Expression): InlineCatchUnknownExpression;
+    createInlineCatchFullExpression(tryExpression: Expression, catchKeyword: CatchKeyword, unknownKeyword: UnknownKeyword, colonToken: ColonToken, catchExpression: Expression): InlineCatchFullExpression;
+    updateInlineCatchFullExpression(node: InlineCatchFullExpression, tryExpression: Expression, catchKeyword: CatchKeyword, unknownKeyword: UnknownKeyword, colonToken: ColonToken, catchExpression: Expression): InlineCatchFullExpression;
     createConditionalExpression(condition: Expression, questionToken: QuestionToken | undefined, whenTrue: Expression, colonToken: ColonToken | undefined, whenFalse: Expression): ConditionalExpression;
     updateConditionalExpression(node: ConditionalExpression, condition: Expression, questionToken: QuestionToken, whenTrue: Expression, colonToken: ColonToken, whenFalse: Expression): ConditionalExpression;
     createTemplateExpression(head: TemplateHead, templateSpans: readonly TemplateSpan[]): TemplateExpression;
