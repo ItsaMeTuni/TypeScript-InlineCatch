@@ -65,6 +65,7 @@ import {
     isModuleReference,
     isNamedExportBindings,
     isNamedImportBindings,
+    isNodeArray,
     isObjectLiteralElementLike,
     isOptionalChain,
     isParameter,
@@ -1185,12 +1186,13 @@ const visitEachChildTable: VisitEachChildTable = {
         );
     },
 
-    [SyntaxKind.InlineCatchFullExpression]: function visitEachChildOfInlineCatchFullExpression(node, visitor, context, _nodesVisitor, nodeVisitor, tokenVisitor) {
+    [SyntaxKind.InlineCatchFullExpression]: function visitEachChildOfInlineCatchFullExpression(node, visitor, context, nodesVisitor, nodeVisitor, tokenVisitor) {
         return context.factory.updateInlineCatchFullExpression(
             node,
             Debug.checkDefined(nodeVisitor(node.tryExpression, visitor, isExpression)),
             tokenVisitor ? Debug.checkDefined(nodeVisitor(node.catchKeyword, tokenVisitor, isCatchKeyword)) : node.catchKeyword,
             tokenVisitor ? Debug.checkDefined(nodeVisitor(node.unknownKeyword, tokenVisitor, isUnknownKeyword)) : node.unknownKeyword,
+            tokenVisitor ? Debug.checkDefined(nodesVisitor(node.classIdentifiers, tokenVisitor, isIdentifier)) : node.classIdentifiers,
             tokenVisitor ? Debug.checkDefined(nodeVisitor(node.colonToken, tokenVisitor, isColonToken)) : node.colonToken,
             Debug.checkDefined(nodeVisitor(node.catchExpression, visitor, isExpression)),
         );

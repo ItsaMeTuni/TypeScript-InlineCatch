@@ -3536,11 +3536,12 @@ export function createNodeFactory(flags: NodeFactoryFlags, baseFactory: BaseNode
                     : node;
     }
 
-    function createInlineCatchFullExpression(tryExpression: Expression, catchKeyword: CatchKeyword, unknownKeyword: UnknownKeyword, colonToken: ColonToken, catchExpression: Expression) {
+    function createInlineCatchFullExpression(tryExpression: Expression, catchKeyword: CatchKeyword, unknownKeyword: UnknownKeyword | undefined, classIdentifiers: NodeArray<Identifier> | undefined, colonToken: ColonToken, catchExpression: Expression) {
         const node = createBaseNode<InlineCatchFullExpression>(SyntaxKind.InlineCatchFullExpression);
         node.tryExpression = tryExpression;
         node.catchKeyword = catchKeyword;
         node.unknownKeyword = unknownKeyword;
+        node.classIdentifiers = classIdentifiers;
         node.colonToken = colonToken;
         node.catchExpression = catchExpression;
         node.transformFlags |=
@@ -3555,16 +3556,18 @@ export function createNodeFactory(flags: NodeFactoryFlags, baseFactory: BaseNode
         node: InlineCatchFullExpression,
         tryExpression: Expression,
         catchKeyword: CatchKeyword,
-        unknownKeyword: UnknownKeyword,
+        unknownKeyword: UnknownKeyword | undefined,
+        classIdentifiers: NodeArray<Identifier> | undefined,
         colonToken: ColonToken,
         catchExpression: Expression
     ): InlineCatchFullExpression {
         return node.tryExpression !== tryExpression
             || node.catchKeyword !== catchKeyword
             || node.unknownKeyword !== unknownKeyword
+            || node.classIdentifiers !== classIdentifiers
             || node.colonToken !== colonToken
             || node.catchExpression !== catchExpression
-                    ? update(createInlineCatchFullExpression(tryExpression, catchKeyword, unknownKeyword, colonToken, catchExpression), node)
+                    ? update(createInlineCatchFullExpression(tryExpression, catchKeyword, unknownKeyword, classIdentifiers, colonToken, catchExpression), node)
                     : node;
     }
 

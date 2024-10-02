@@ -2728,9 +2728,14 @@ export interface InlineCatchFullExpression extends Expression {
     readonly kind: SyntaxKind.InlineCatchFullExpression;
     readonly tryExpression: Expression;
     readonly catchKeyword: CatchKeyword;
-    readonly unknownKeyword: UnknownKeyword;
+    readonly unknownKeyword?: UnknownKeyword;
+    readonly classIdentifiers?: NodeArray<Identifier>
     readonly colonToken: ColonToken;
     readonly catchExpression: Expression;
+}
+
+export interface ClassMatcherExpression extends Expression {
+    readonly types: NodeArray<ExpressionWithTypeArguments>;
 }
 
 export interface ConditionalExpression extends Expression {
@@ -8614,8 +8619,8 @@ export interface NodeFactory {
     updateBinaryExpression(node: BinaryExpression, left: Expression, operator: BinaryOperator | BinaryOperatorToken, right: Expression): BinaryExpression;
     createInlineCatchShorthandOrExpression(tryExpression: Expression, orKeyword: InlineCatchShorthandOrKeyword, catchExpression: Expression): InlineCatchShorthandOrExpression;
     updateInlineCatchShorthandOrExpression(node: InlineCatchShorthandOrExpression, tryExpression: Expression, orKeyword: InlineCatchShorthandOrKeyword, catchExpression: Expression): InlineCatchShorthandOrExpression;
-    createInlineCatchFullExpression(tryExpression: Expression, catchKeyword: CatchKeyword, unknownKeyword: UnknownKeyword, colonToken: ColonToken, catchExpression: Expression): InlineCatchFullExpression;
-    updateInlineCatchFullExpression(node: InlineCatchFullExpression, tryExpression: Expression, catchKeyword: CatchKeyword, unknownKeyword: UnknownKeyword, colonToken: ColonToken, catchExpression: Expression): InlineCatchFullExpression;
+    createInlineCatchFullExpression(tryExpression: Expression, catchKeyword: CatchKeyword, unknownKeyword: UnknownKeyword | undefined, classIdentifiers: NodeArray<Identifier> | undefined, colonToken: ColonToken, catchExpression: Expression): InlineCatchFullExpression;
+    updateInlineCatchFullExpression(node: InlineCatchFullExpression, tryExpression: Expression, catchKeyword: CatchKeyword, unknownKeyword: UnknownKeyword | undefined, classIdentifiers: NodeArray<Identifier> | undefined, colonToken: ColonToken, catchExpression: Expression): InlineCatchFullExpression;
     createConditionalExpression(condition: Expression, questionToken: QuestionToken | undefined, whenTrue: Expression, colonToken: ColonToken | undefined, whenFalse: Expression): ConditionalExpression;
     updateConditionalExpression(node: ConditionalExpression, condition: Expression, questionToken: QuestionToken, whenTrue: Expression, colonToken: ColonToken, whenFalse: Expression): ConditionalExpression;
     createTemplateExpression(head: TemplateHead, templateSpans: readonly TemplateSpan[]): TemplateExpression;

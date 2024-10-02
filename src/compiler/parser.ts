@@ -5568,14 +5568,30 @@ namespace Parser {
             return expr;
         }
         const unknownKeyword = parseOptionalToken(SyntaxKind.UnknownKeyword);
+        let classIdentifiers: NodeArray<Identifier> | undefined = undefined;
+        if (!unknownKeyword) {
+            classIdentifiers = parseClassMatch();
+        }
+
         const colonToken = parseOptionalToken(SyntaxKind.ColonToken);
 
         const catchExpression = parseAssignmentExpressionOrHigher(allowReturnTypeInArrowFunction);
 
         return finishNode(
-            factory.createInlineCatchFullExpression(expr, catchKeyword, unknownKeyword, colonToken, catchExpression),
+            factory.createInlineCatchFullExpression(expr, catchKeyword, unknownKeyword, classIdentifiers, colonToken, catchExpression),
             pos,
         )
+    }
+
+    function parseClassMatch(): NodeArray<Identifier> {
+        const firstIdPos = getNodePos();
+        const identifiers = [parseIdentifier()]
+        while(token() == SyntaxKind.BarToken) {
+            nextToken();
+            identifiers.push(parseIdentifier())
+        }
+
+        return createNodeArray(identifiers, firstIdPos);
     }
 
     function parseConditionalExpressionRest(leftOperand: Expression, pos: number, allowReturnTypeInArrowFunction: boolean): Expression {
