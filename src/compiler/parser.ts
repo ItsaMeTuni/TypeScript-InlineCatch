@@ -5585,7 +5585,9 @@ namespace Parser {
 
     function parseClassMatch(): NodeArray<Identifier> {
         const firstIdPos = getNodePos();
-        const identifiers = [parseIdentifier()]
+
+
+        const identifiers = [parseIdentifier()];
         while(token() == SyntaxKind.BarToken) {
             nextToken();
             identifiers.push(parseIdentifier())

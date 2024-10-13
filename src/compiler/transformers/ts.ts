@@ -205,6 +205,8 @@ import {
     VisitResult,
 } from "../_namespaces/ts";
 
+import * as util from 'node:util'
+
 /**
  * Indicates whether to emit type metadata in the new format.
  */
@@ -1864,12 +1866,21 @@ export function transformTypeScript(context: TransformationContext) {
                         ),
                         //block
                         factory.createBlock(
-                            [
-                                // return <catchExpression>
-                                factory.createReturnStatement(
-                                    node.catchExpression
-                                )
-                            ]
+                            node.unknownKeyword
+                                ?
+                                    [
+                                        // return <catchExpression>
+                                        factory.createReturnStatement(
+                                            node.catchExpression
+                                        )
+                                    ]
+                                :
+                                    (node.classIdentifiers ?? [])
+                                        .map(identifier => createInlineCatchExceptionClassIf(
+                                            identifier,
+                                            id,
+                                            node.catchExpression
+                                        ))
                         )
                     ),
                     /*finallyBlock*/ undefined
@@ -1884,6 +1895,19 @@ export function transformTypeScript(context: TransformationContext) {
             ),
             node,
         );
+    }
+
+    function createInlineCatchExceptionClassIf(classIdentifier: Identifier, exceptionVariable: Identifier, returnExpression: Expression) {
+        return factory.createIfStatement(
+            factory.createBinaryExpression(
+                exceptionVariable,
+                SyntaxKind.InstanceOfKeyword,
+                classIdentifier
+            ),
+            factory.createReturnStatement(
+                returnExpression
+            )
+        )
     }
 
     /**

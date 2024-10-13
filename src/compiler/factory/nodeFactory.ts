@@ -3541,11 +3541,15 @@ export function createNodeFactory(flags: NodeFactoryFlags, baseFactory: BaseNode
         node.tryExpression = tryExpression;
         node.catchKeyword = catchKeyword;
         node.unknownKeyword = unknownKeyword;
-        node.classIdentifiers = classIdentifiers;
+        node.classIdentifiers = createNodeArray(classIdentifiers);
         node.colonToken = colonToken;
         node.catchExpression = catchExpression;
         node.transformFlags |=
             propagateChildFlags(node.tryExpression) |
+            propagateChildFlags(node.catchKeyword) |
+            propagateChildFlags(node.unknownKeyword) |
+            propagateChildrenFlags(node.classIdentifiers) |
+            propagateChildFlags(node.colonToken) |
             propagateChildFlags(node.catchExpression) |
             TransformFlags.ContainsTypeScript;
 

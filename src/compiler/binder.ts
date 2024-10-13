@@ -119,7 +119,7 @@ import {
     identifierToKeywordKind,
     idText,
     IfStatement,
-    ImportClause, InlineCatchShorthandOrExpression,
+    ImportClause, InlineCatchFullExpression, InlineCatchShorthandOrExpression,
     InternalSymbolName,
     isAliasableExpression,
     isAmbientModule,
@@ -1165,6 +1165,9 @@ function createBinder(): (file: SourceFile, options: CompilerOptions) => void {
             case SyntaxKind.InlineCatchShorthandOrExpression:
                 bindInlineCatchShorthandOrExpressionFlow(node as InlineCatchShorthandOrExpression);
                 break;
+            case SyntaxKind.InlineCatchFullExpression:
+                bindInlineCatchFullExpressionFlow(node as InlineCatchFullExpression);
+                break;
             case SyntaxKind.VariableDeclaration:
                 bindVariableDeclarationFlow(node as VariableDeclaration);
                 break;
@@ -1666,6 +1669,29 @@ function createBinder(): (file: SourceFile, options: CompilerOptions) => void {
     }
 
     function bindInlineCatchShorthandOrExpressionFlow(node: InlineCatchShorthandOrExpression) {
+        const saveExceptionTarget = currentExceptionTarget;
+        const normalExitLabel = createBranchLabel();
+        let exceptionLabel = createBranchLabel();
+
+        addAntecedent(exceptionLabel, currentFlow);
+        currentExceptionTarget = exceptionLabel;
+        bind(node.tryExpression);
+        addAntecedent(normalExitLabel, currentFlow);
+
+        // Start of catch clause is the target of exceptions from try block.
+        currentFlow = finishFlowLabel(exceptionLabel);
+
+        currentExceptionTarget = saveExceptionTarget;
+
+        bind(node.catchExpression);
+        addAntecedent(normalExitLabel, currentFlow);
+
+        currentFlow = finishFlowLabel(normalExitLabel);
+    }
+
+    function bindInlineCatchFullExpressionFlow(node: InlineCatchFullExpression) {
+        bindEach(node.classIdentifiers);
+
         const saveExceptionTarget = currentExceptionTarget;
         const normalExitLabel = createBranchLabel();
         let exceptionLabel = createBranchLabel();
