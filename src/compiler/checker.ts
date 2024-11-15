@@ -430,7 +430,7 @@ import {
     InferenceFlags,
     InferenceInfo,
     InferencePriority,
-    InferTypeNode, InlineCatchShorthandOrExpression,
+    InferTypeNode, InlineCatchFullExpression, InlineCatchShorthandOrExpression,
     InstanceofExpression,
     InstantiableType,
     InstantiationExpressionType,
@@ -39018,7 +39018,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
             }
 
             if (isInParameterInitializerBeforeContainingFunction(node)) {
-                error(node, Diagnostics.yield_expressions_cannot_be_used_in_a_parameter_initializer);
+                error(node, Diagnostics.Inline_catch_expressions_can_only_match_classes);
             }
         }
     }
@@ -39031,8 +39031,26 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         return getUnionType([type1, type2], UnionReduction.Subtype);
     }
 
-    function checkInlineCatchShorthandOrExpression(node: InlineCatchShorthandOrExpression, checkMode?: CheckMode) {
+    function checkInlineCatchShorthandOrExpression(node: InlineCatchShorthandOrExpression, checkMode?: CheckMode): Type {
         checkGrammarStatementInAmbientContext(node);
+
+        const type1 = checkExpression(node.tryExpression, checkMode);
+        const type2 = checkExpression(node.catchExpression, checkMode);
+
+        return getUnionType([type1, type2], UnionReduction.Subtype);
+    }
+
+    function checkInlineCatchFullExpression(node: InlineCatchFullExpression, checkMode?: CheckMode): Type {
+        checkGrammarStatementInAmbientContext(node);
+
+        node.classIdentifiers?.forEach((identifier) => {
+            const identifierType = checkIdentifier(identifier, checkMode);
+
+            const isClass = identifierType.symbol.flags & SymbolFlags.Class;
+            if (!isClass) {
+                error(node, Diagnostics.Inline_catch_expressions_can_only_match_classes);
+            }
+        });
 
         const type1 = checkExpression(node.tryExpression, checkMode);
         const type2 = checkExpression(node.catchExpression, checkMode);
@@ -39621,6 +39639,8 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                 return checkConditionalExpression(node as ConditionalExpression, checkMode);
             case SyntaxKind.InlineCatchShorthandOrExpression:
                 return checkInlineCatchShorthandOrExpression(node as InlineCatchShorthandOrExpression, checkMode);
+            case SyntaxKind.InlineCatchFullExpression:
+                return checkInlineCatchFullExpression(node as InlineCatchFullExpression, checkMode)
             case SyntaxKind.SpreadElement:
                 return checkSpreadExpression(node as SpreadElement, checkMode);
             case SyntaxKind.OmittedExpression:
