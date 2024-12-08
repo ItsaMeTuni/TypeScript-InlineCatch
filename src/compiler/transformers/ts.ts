@@ -72,7 +72,7 @@ import {
     ImportsNotUsedAsValues,
     ImportSpecifier,
     InitializedVariableDeclaration, InlineCatchShorthandOrExpression,
-    InlineCatchUnknownExpression,
+    InlineCatchFullExpression,
     insertStatementsAfterStandardPrologue,
     InternalEmitFlags,
     isAccessExpression,
@@ -204,6 +204,8 @@ import {
     visitParameterList,
     VisitResult,
 } from "../_namespaces/ts";
+
+import * as util from 'node:util'
 
 /**
  * Indicates whether to emit type metadata in the new format.
@@ -842,8 +844,8 @@ export function transformTypeScript(context: TransformationContext) {
             case SyntaxKind.InlineCatchShorthandOrExpression:
                 return visitInlineCatchShorthandOrExpression(node as InlineCatchShorthandOrExpression);
 
-            case SyntaxKind.InlineCatchUnknownExpression:
-                return visitInlineCatchUnknownExpression(node as InlineCatchUnknownExpression);
+            case SyntaxKind.InlineCatchFullExpression:
+                return visitInlineCatchFullExpression(node as InlineCatchFullExpression);
 
             default:
                 // node contains some other TypeScript syntax
@@ -1799,6 +1801,9 @@ export function transformTypeScript(context: TransformationContext) {
     function visitInlineCatchShorthandOrExpression(node: InlineCatchShorthandOrExpression) {
         const id =  factory.createInlineCatchShorthandOrCatchClauseVariable();
 
+        const tryExpr = visitTypeScript(node.tryExpression);
+        const catchExpr = visitTypeScript(node.catchExpression);
+
         const arrowFunction = factory.createImmediatelyInvokedArrowFunction(
             [
                 factory.createTryStatement(
@@ -1807,7 +1812,7 @@ export function transformTypeScript(context: TransformationContext) {
                         [
                             // return <tryExpression>
                             factory.createReturnStatement(
-                                node.tryExpression
+                                tryExpr as Expression
                             )
                         ]
                     ),
@@ -1822,7 +1827,7 @@ export function transformTypeScript(context: TransformationContext) {
                             [
                                 // return <catchExpression>
                                 factory.createReturnStatement(
-                                    node.catchExpression
+                                    catchExpr as Expression
                                 )
                             ]
                         )
@@ -1841,8 +1846,11 @@ export function transformTypeScript(context: TransformationContext) {
         );
     }
 
-    function visitInlineCatchUnknownExpression(node: InlineCatchUnknownExpression) {
-        const id =  factory.createInlineCatchUnknownClauseVariable();
+    function visitInlineCatchFullExpression(node: InlineCatchFullExpression) {
+        const id =  factory.createInlineCatchFullClauseVariable();
+
+        const tryExpr = visitTypeScript(node.tryExpression);
+        const catchExpr = visitTypeScript(node.catchExpression);
 
         const arrowFunction = factory.createImmediatelyInvokedArrowFunction(
             [
@@ -1852,7 +1860,7 @@ export function transformTypeScript(context: TransformationContext) {
                         [
                             // return <tryExpression>
                             factory.createReturnStatement(
-                                node.tryExpression
+                                tryExpr as Expression
                             )
                         ]
                     ),
@@ -1864,12 +1872,22 @@ export function transformTypeScript(context: TransformationContext) {
                         ),
                         //block
                         factory.createBlock(
-                            [
-                                // return <catchExpression>
-                                factory.createReturnStatement(
-                                    node.catchExpression
-                                )
-                            ]
+                            node.unknownKeyword
+                                ?
+                                    [
+                                        // return <catchExpression>
+                                        factory.createReturnStatement(
+                                            catchExpr as Expression
+                                        )
+                                    ]
+                                :
+                                    (node.classIdentifiers ?? [])
+                                        .map(identifier => createInlineCatchExceptionClassIf(
+                                            identifier,
+                                            id,
+                                            catchExpr as Expression
+                                        ) as Statement)
+                                        .concat([factory.createThrowStatement(id)])
                         )
                     ),
                     /*finallyBlock*/ undefined
@@ -1884,6 +1902,19 @@ export function transformTypeScript(context: TransformationContext) {
             ),
             node,
         );
+    }
+
+    function createInlineCatchExceptionClassIf(classIdentifier: Identifier, exceptionVariable: Identifier, returnExpression: Expression) {
+        return factory.createIfStatement(
+            factory.createBinaryExpression(
+                exceptionVariable,
+                SyntaxKind.InstanceOfKeyword,
+                classIdentifier
+            ),
+            factory.createReturnStatement(
+                returnExpression
+            )
+        )
     }
 
     /**

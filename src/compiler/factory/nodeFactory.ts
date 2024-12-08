@@ -154,7 +154,7 @@ import {
     InferTypeNode,
     InlineCatchShorthandOrExpression,
 InlineCatchShorthandOrKeyword,
-    InlineCatchUnknownExpression,
+    InlineCatchFullExpression,
     InputFiles,
     InterfaceDeclaration,
     InternalEmitFlags,
@@ -555,7 +555,7 @@ export function createNodeFactory(flags: NodeFactoryFlags, baseFactory: BaseNode
         createTempVariable,
         createLoopVariable,
         createInlineCatchShorthandOrCatchClauseVariable,
-        createInlineCatchUnknownClauseVariable,
+        createInlineCatchFullClauseVariable,
         createUniqueName,
         getGeneratedNameForNode,
         createPrivateIdentifier,
@@ -703,8 +703,8 @@ export function createNodeFactory(flags: NodeFactoryFlags, baseFactory: BaseNode
         updateBinaryExpression,
         createInlineCatchShorthandOrExpression,
         updateInlineCatchShorthandOrExpression,
-        createInlineCatchUnknownExpression,
-        updateInlineCatchUnknownExpression,
+        createInlineCatchFullExpression,
+        updateInlineCatchFullExpression,
         createConditionalExpression,
         updateConditionalExpression,
         createTemplateExpression,
@@ -1405,7 +1405,7 @@ export function createNodeFactory(flags: NodeFactoryFlags, baseFactory: BaseNode
     }
 
     // @api
-    function createInlineCatchUnknownClauseVariable(reservedInNestedScopes?: boolean): Identifier {
+    function createInlineCatchFullClauseVariable(reservedInNestedScopes?: boolean): Identifier {
         let flags = GeneratedIdentifierFlags.Auto;
         return createBaseGeneratedIdentifier("", flags, /*prefix*/ undefined, /*suffix*/ undefined);
     }
@@ -3536,35 +3536,42 @@ export function createNodeFactory(flags: NodeFactoryFlags, baseFactory: BaseNode
                     : node;
     }
 
-    function createInlineCatchUnknownExpression(tryExpression: Expression, catchKeyword: CatchKeyword, unknownKeyword: UnknownKeyword, colonToken: ColonToken, catchExpression: Expression) {
-        const node = createBaseNode<InlineCatchUnknownExpression>(SyntaxKind.InlineCatchUnknownExpression);
+    function createInlineCatchFullExpression(tryExpression: Expression, catchKeyword: CatchKeyword, unknownKeyword: UnknownKeyword | undefined, classIdentifiers: NodeArray<Identifier> | undefined, colonToken: ColonToken, catchExpression: Expression) {
+        const node = createBaseNode<InlineCatchFullExpression>(SyntaxKind.InlineCatchFullExpression);
         node.tryExpression = tryExpression;
         node.catchKeyword = catchKeyword;
         node.unknownKeyword = unknownKeyword;
+        node.classIdentifiers = createNodeArray(classIdentifiers);
         node.colonToken = colonToken;
         node.catchExpression = catchExpression;
         node.transformFlags |=
             propagateChildFlags(node.tryExpression) |
+            propagateChildFlags(node.catchKeyword) |
+            propagateChildFlags(node.unknownKeyword) |
+            propagateChildrenFlags(node.classIdentifiers) |
+            propagateChildFlags(node.colonToken) |
             propagateChildFlags(node.catchExpression) |
             TransformFlags.ContainsTypeScript;
 
         return node;
     }
 
-    function updateInlineCatchUnknownExpression(
-        node: InlineCatchUnknownExpression,
+    function updateInlineCatchFullExpression(
+        node: InlineCatchFullExpression,
         tryExpression: Expression,
         catchKeyword: CatchKeyword,
-        unknownKeyword: UnknownKeyword,
+        unknownKeyword: UnknownKeyword | undefined,
+        classIdentifiers: NodeArray<Identifier> | undefined,
         colonToken: ColonToken,
         catchExpression: Expression
-    ): InlineCatchUnknownExpression {
+    ): InlineCatchFullExpression {
         return node.tryExpression !== tryExpression
             || node.catchKeyword !== catchKeyword
             || node.unknownKeyword !== unknownKeyword
+            || node.classIdentifiers !== classIdentifiers
             || node.colonToken !== colonToken
             || node.catchExpression !== catchExpression
-                    ? update(createInlineCatchUnknownExpression(tryExpression, catchKeyword, unknownKeyword, colonToken, catchExpression), node)
+                    ? update(createInlineCatchFullExpression(tryExpression, catchKeyword, unknownKeyword, classIdentifiers, colonToken, catchExpression), node)
                     : node;
     }
 
