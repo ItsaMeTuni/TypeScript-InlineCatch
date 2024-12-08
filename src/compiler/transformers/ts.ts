@@ -1801,6 +1801,9 @@ export function transformTypeScript(context: TransformationContext) {
     function visitInlineCatchShorthandOrExpression(node: InlineCatchShorthandOrExpression) {
         const id =  factory.createInlineCatchShorthandOrCatchClauseVariable();
 
+        const tryExpr = visitTypeScript(node.tryExpression);
+        const catchExpr = visitTypeScript(node.catchExpression);
+
         const arrowFunction = factory.createImmediatelyInvokedArrowFunction(
             [
                 factory.createTryStatement(
@@ -1809,7 +1812,7 @@ export function transformTypeScript(context: TransformationContext) {
                         [
                             // return <tryExpression>
                             factory.createReturnStatement(
-                                node.tryExpression
+                                tryExpr as Expression
                             )
                         ]
                     ),
@@ -1824,7 +1827,7 @@ export function transformTypeScript(context: TransformationContext) {
                             [
                                 // return <catchExpression>
                                 factory.createReturnStatement(
-                                    node.catchExpression
+                                    catchExpr as Expression
                                 )
                             ]
                         )
@@ -1846,6 +1849,9 @@ export function transformTypeScript(context: TransformationContext) {
     function visitInlineCatchFullExpression(node: InlineCatchFullExpression) {
         const id =  factory.createInlineCatchFullClauseVariable();
 
+        const tryExpr = visitTypeScript(node.tryExpression);
+        const catchExpr = visitTypeScript(node.catchExpression);
+
         const arrowFunction = factory.createImmediatelyInvokedArrowFunction(
             [
                 factory.createTryStatement(
@@ -1854,7 +1860,7 @@ export function transformTypeScript(context: TransformationContext) {
                         [
                             // return <tryExpression>
                             factory.createReturnStatement(
-                                node.tryExpression
+                                tryExpr as Expression
                             )
                         ]
                     ),
@@ -1871,7 +1877,7 @@ export function transformTypeScript(context: TransformationContext) {
                                     [
                                         // return <catchExpression>
                                         factory.createReturnStatement(
-                                            node.catchExpression
+                                            catchExpr as Expression
                                         )
                                     ]
                                 :
@@ -1879,8 +1885,9 @@ export function transformTypeScript(context: TransformationContext) {
                                         .map(identifier => createInlineCatchExceptionClassIf(
                                             identifier,
                                             id,
-                                            node.catchExpression
-                                        ))
+                                            catchExpr as Expression
+                                        ) as Statement)
+                                        .concat([factory.createThrowStatement(id)])
                         )
                     ),
                     /*finallyBlock*/ undefined
